@@ -8,3 +8,6 @@ mlruns/
 capsule-networks/
 *.egg-info/
 .env
+mlflow.db
+src/mlflow.db
+src/os
