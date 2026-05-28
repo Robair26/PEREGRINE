@@ -6,3 +6,5 @@ mlruns/
 *.pth
 *.pt
 capsule-networks/
+*.egg-info/
+.env
