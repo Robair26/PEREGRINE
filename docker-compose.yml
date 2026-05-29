@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  peregrine:
+    build: .
+    container_name: peregrine-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./best_capsnet_dior.pth:/app/best_capsnet_dior.pth
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app/src
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: peregrine-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: peregrine-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=peregrine
+    restart: unless-stopped
+
