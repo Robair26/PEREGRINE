@@ -35,6 +35,7 @@ Named after the Peregrine falcon — the fastest animal alive, known for extraor
 | 60°            | 20.5%   | 12.5%  | +8.0% |
 | 90°            | 14.5%   | 10.5%  | +4.0% |
 
+![PEREGRINE Rotation Benchmark](docs/rotation_benchmark.png)
 CapsNet wins 6/6 rotation angles tested.
 Performance gap increases at extreme rotations — max delta +8% at 60°.
 
