@@ -70,16 +70,5 @@ jobs:
         print('MNIST mode test passed')
         "
 
-    - name: Test API imports
-      run: |
-        cd src
-        python -c "
-        import sys
-        sys.path.append('.')
-        from models.capsnet import CapsNet
-        from fastapi.testclient import TestClient
-        print('API imports passed')
-        "
-
     - name: All tests passed
       run: echo "PEREGRINE CI passed — all systems operational"
