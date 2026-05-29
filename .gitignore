@@ -1,7 +1,7 @@
 peregrine-env/
 __pycache__/
 *.pyc
-data/
+/data/
 mlruns/
 *.pth
 *.pt
