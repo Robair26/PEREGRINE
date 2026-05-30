@@ -32,7 +32,7 @@ model = None
 device = torch.device("cpu")
 
 transform = transforms.Compose([
-    transforms.Resize((64, 64)),
+    transforms.Resize((32, 32)),
     transforms.ToTensor(),
     transforms.Normalize(
         mean=[0.485, 0.456, 0.406],
@@ -43,9 +43,9 @@ transform = transforms.Compose([
 
 def load_model():
     global model
-    model = CapsNet(num_classes=20, in_channels=3, img_size=64)
+    model = CapsNet(num_classes=20, in_channels=3, img_size=32)
 
-    model_path = os.path.expanduser("~/PEREGRINE/best_capsnet_dior.pth")
+    model_path = os.path.expanduser("~/PEREGRINE/best_capsnet_dior_jetson.pth")
     if os.path.exists(model_path):
         model.load_state_dict(
             torch.load(model_path, map_location=device)
