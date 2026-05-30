@@ -4,12 +4,8 @@ import torch.nn.functional as F
 
 
 class PrimaryCapsules(nn.Module):
-    """
-    First capsule layer — extracts low level
-    spatial features from input images.
-    """
-    def __init__(self, in_channels=256, out_channels=32,
-                 capsule_dim=8, kernel_size=9, stride=2):
+    def __init__(self, in_channels=64, out_channels=8,
+                 capsule_dim=8, kernel_size=5, stride=2):
         super(PrimaryCapsules, self).__init__()
         self.capsule_dim = capsule_dim
         self.out_channels = out_channels
@@ -32,13 +28,8 @@ class PrimaryCapsules(nn.Module):
 
 
 class DigitCapsules(nn.Module):
-    """
-    Final capsule layer — preserves spatial
-    relationships between detected features.
-    This is Hinton's core idea — dynamic routing by agreement.
-    """
-    def __init__(self, num_capsules=20, num_routes=1152,
-                 in_dim=8, out_dim=16, num_iterations=3):
+    def __init__(self, num_capsules=20, num_routes=512,
+                 in_dim=8, out_dim=16, num_iterations=1):
         super(DigitCapsules, self).__init__()
         self.num_iterations = num_iterations
         self.num_capsules = num_capsules
@@ -72,31 +63,27 @@ class DigitCapsules(nn.Module):
 
 class CapsNet(nn.Module):
     """
-    PEREGRINE CapsNet — full capsule network
-    for aerospace anomaly detection.
-    Implements Hinton 2017 dynamic routing by agreement.
-    Supports both MNIST (1ch, 28x28) and DIOR (3ch, 64x64).
+    PEREGRINE CapsNet — Hinton 2017 dynamic routing.
+    Lightweight version optimized for Jetson Orin 8GB.
     """
-    def __init__(self, num_classes=20, in_channels=3, img_size=64):
+    def __init__(self, num_classes=20, in_channels=3, img_size=32):
         super(CapsNet, self).__init__()
         self.conv1 = nn.Conv2d(
-            in_channels, 256,
-            kernel_size=9, stride=1
+            in_channels, 64,
+            kernel_size=5, stride=1
         )
         self.primary = PrimaryCapsules(
-            in_channels=256,
-            out_channels=32,
+            in_channels=64,
+            out_channels=8,
             capsule_dim=8,
-            kernel_size=9,
+            kernel_size=5,
             stride=2
         )
-        # Calculate num_routes dynamically based on image size
-        conv_out = img_size - 8
-        primary_out = (conv_out - 8) // 2
-        num_routes = 32 * primary_out * primary_out
+        conv_out = img_size - 4
+        primary_out = (conv_out - 4) // 2
+        num_routes = 8 * primary_out * primary_out
 
         print(f"CapsNet routing: img_size={img_size} "
-              f"conv_out={conv_out} "
               f"primary_out={primary_out} "
               f"num_routes={num_routes}")
 
@@ -105,7 +92,7 @@ class CapsNet(nn.Module):
             num_routes=num_routes,
             in_dim=8,
             out_dim=16,
-            num_iterations=3
+            num_iterations=1
         )
 
     def forward(self, x):
@@ -117,23 +104,17 @@ class CapsNet(nn.Module):
 
 
 if __name__ == "__main__":
-    print("=" * 50)
     print("Testing MNIST mode (1ch, 28x28)...")
-    model_mnist = CapsNet(num_classes=10, in_channels=1, img_size=28)
+    model = CapsNet(num_classes=10, in_channels=1, img_size=28)
     x = torch.randn(2, 1, 28, 28)
-    out = model_mnist(x)
-    print(f"Input:  {x.shape}")
-    print(f"Output: {out.shape}")
-    total = sum(p.numel() for p in model_mnist.parameters())
-    print(f"Params: {total:,}")
+    out = model(x)
+    print(f"Input:  {x.shape} Output: {out.shape}")
+    print(f"Params: {sum(p.numel() for p in model.parameters()):,}")
 
-    print("=" * 50)
-    print("Testing DIOR mode (3ch, 64x64)...")
-    model_dior = CapsNet(num_classes=20, in_channels=3, img_size=64)
-    x = torch.randn(2, 3, 64, 64)
-    out = model_dior(x)
-    print(f"Input:  {x.shape}")
-    print(f"Output: {out.shape}")
-    total = sum(p.numel() for p in model_dior.parameters())
-    print(f"Params: {total:,}")
-    print("PEREGRINE CapsNet ready for aerospace data")
+    print("Testing DIOR mode (3ch, 32x32)...")
+    model = CapsNet(num_classes=20, in_channels=3, img_size=32)
+    x = torch.randn(2, 3, 32, 32)
+    out = model(x)
+    print(f"Input:  {x.shape} Output: {out.shape}")
+    print(f"Params: {sum(p.numel() for p in model.parameters()):,}")
+    print("PEREGRINE CapsNet ready for Jetson training")
