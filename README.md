@@ -6,7 +6,6 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-3.12-blue)](https://mlflow.org)
 [![ONNX](https://img.shields.io/badge/ONNX-Edge_Ready-green)](https://onnx.ai)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
@@ -23,7 +22,7 @@ Named after the Peregrine falcon — the fastest animal alive, known for extraor
 ---
 
 ## 🌐 Live Demo
-https://axiom.bitshadow.dev
+
 
 ---
 
