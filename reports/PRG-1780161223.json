@@ -1,0 +1,72 @@
+{
+  "report_id": "PRG-1780161223",
+  "timestamp": "2026-05-30T10:13:43.786707",
+  "system": "PEREGRINE",
+  "version": "1.0.0",
+  "image": {
+    "path": "16564.jpg",
+    "size": "800x800"
+  },
+  "detection": {
+    "primary_class": "windmill",
+    "confidence": 0.0642,
+    "inference_ms": 18.45,
+    "top5": [
+      {
+        "class": "windmill",
+        "confidence": 0.0642
+      },
+      {
+        "class": "overpass",
+        "confidence": 0.0534
+      },
+      {
+        "class": "baseballfield",
+        "confidence": 0.0528
+      },
+      {
+        "class": "trainstation",
+        "confidence": 0.0515
+      },
+      {
+        "class": "vehicle",
+        "confidence": 0.0506
+      }
+    ]
+  },
+  "assessment": {
+    "severity": "LOW",
+    "is_threat_class": false,
+    "requires_escalation": false,
+    "ambiguity_score": 0.9892,
+    "contextual_assessment": "Wind energy infrastructure detected. Nominal observation.",
+    "secondary_candidates": [
+      {
+        "class": "overpass",
+        "confidence": 0.0534
+      },
+      {
+        "class": "baseballfield",
+        "confidence": 0.0528
+      },
+      {
+        "class": "trainstation",
+        "confidence": 0.0515
+      },
+      {
+        "class": "vehicle",
+        "confidence": 0.0506
+      }
+    ],
+    "recommended_actions": [
+      "Log for routine reporting",
+      "No immediate action required",
+      "Include in next scheduled summary"
+    ]
+  },
+  "system_health": {
+    "total_detections": 206,
+    "drift_alerts_24h": 0,
+    "system_status": "NOMINAL"
+  }
+}
