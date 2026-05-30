@@ -6,6 +6,8 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-3.12-blue)](https://mlflow.org)
 [![ONNX](https://img.shields.io/badge/ONNX-Edge_Ready-green)](https://onnx.ai)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![CI](https://github.com/Robair26/PEREGRINE/actions/workflows/ci.yml/badge.svg)](https://github.com/Robair26/PEREGRINE/actions)
 
 ---
 
@@ -23,6 +25,10 @@ Named after the Peregrine falcon — the fastest animal alive, known for extraor
 
 ## 🌐 Live Demo
 
+**Try it now — upload any satellite or aerial image:**
+**https://peregrine.bitshadow.dev**
+
+API documentation: https://peregrine.bitshadow.dev/docs
 
 ---
 
@@ -120,6 +126,8 @@ ONNX Edge Export — 12.2MB model exported to ONNX and running at 2.65ms on Jets
 
 MLflow Experiment Tracking — Every training run, parameter, and metric logged automatically. Full experiment history with model registry and artifact storage.
 
+Live Defense Dashboard — Production web interface at peregrine.bitshadow.dev. Upload any satellite or aerial image and see real-time detections with confidence scores and top 5 results.
+
 FastAPI Inference Endpoint — Live API accepting satellite images and returning detections with confidence scores for all 20 aerospace classes.
 
 Kubernetes Orchestration — K3s lightweight cluster with auto-healing deployments, persistent volume claims, and service mesh routing.
@@ -166,6 +174,8 @@ PEREGRINE/
 │   ├── rotation_test.py            # Rotation invariance proof
 │   ├── visualize.py                # Benchmark visualization
 │   └── export_onnx.py              # ONNX edge export
+├── frontend/
+│   └── index.html                  # Live defense dashboard
 ├── docs/
 │   └── rotation_benchmark.png      # Results chart
 ├── deploy/
@@ -206,11 +216,11 @@ kubectl apply -f deploy/kubernetes/
 - [x] Full GPU training on NVIDIA Jetson Orin — 15 epochs
 - [x] ONNX export — 12.2MB model, 2.65ms edge inference
 - [x] FastAPI inference endpoint — live aerospace detection API
+- [x] Live defense dashboard — peregrine.bitshadow.dev
 - [x] Docker + Kubernetes deployment
 - [x] GitHub Actions CI/CD — green on every push
 - [ ] Prometheus and Grafana live monitoring dashboard
 - [ ] Drift detection with auto-retraining triggers
-- [ ] Live public URL — peregrine.bitshadow.dev
 - [ ] Agentic anomaly investigation layer
 - [ ] Research paper writeup
 
@@ -230,6 +240,7 @@ kubectl apply -f deploy/kubernetes/
 
 Robair — M.S. Applied Artificial Intelligence, University of San Diego
 
+- Live demo: https://peregrine.bitshadow.dev
 - AXIOM (edge-cloud AI system): https://axiom.bitshadow.dev
 - GitHub: https://github.com/Robair26
 - PEREGRINE: https://github.com/Robair26/PEREGRINE
