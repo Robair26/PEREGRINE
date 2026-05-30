@@ -5,6 +5,7 @@ from torchvision import transforms
 from PIL import Image
 import xml.etree.ElementTree as ET
 
+
 DIOR_CLASSES = [
     'airplane', 'airport', 'baseballfield', 'basketballcourt',
     'bridge', 'chimney', 'dam', 'Expressway-Service-area',
@@ -15,8 +16,15 @@ DIOR_CLASSES = [
 
 CLASS_TO_IDX = {cls: idx for idx, cls in enumerate(DIOR_CLASSES)}
 
+
 class DIORDataset(Dataset):
-    def __init__(self, root_dir, split='train', transform=None, img_size=64):
+    """
+    DIOR — Dataset for Object Detection in Optical Remote Sensing Images.
+    23,463 aerial images across 20 object classes.
+    Direct replacement for MNIST in PEREGRINE pipeline.
+    """
+    def __init__(self, root_dir, split='train',
+                 transform=None, img_size=64):
         self.root_dir = root_dir
         self.split = split
         self.transform = transform
@@ -30,7 +38,11 @@ class DIORDataset(Dataset):
         else:
             img_dir = os.path.join(self.root_dir, 'JPEGImages-test')
 
-        ann_dir = os.path.join(self.root_dir, 'Annotations', 'Horizontal Bounding Boxes')
+        ann_dir = os.path.join(
+            self.root_dir,
+            'Annotations',
+            'Horizontal Bounding Boxes'
+        )
 
         if not os.path.exists(img_dir):
             print(f"Image dir not found: {img_dir}")
@@ -39,7 +51,8 @@ class DIORDataset(Dataset):
             print(f"Annotation dir not found: {ann_dir}")
             return
 
-        ann_files = [f for f in os.listdir(ann_dir) if f.endswith('.xml')]
+        ann_files = [f for f in os.listdir(ann_dir)
+                     if f.endswith('.xml')]
         print(f"Found {len(ann_files)} annotation files")
 
         loaded = 0
@@ -47,7 +60,10 @@ class DIORDataset(Dataset):
 
         for ann_file in ann_files:
             ann_path = os.path.join(ann_dir, ann_file)
-            img_path = os.path.join(img_dir, ann_file.replace('.xml', '.jpg'))
+            img_path = os.path.join(
+                img_dir,
+                ann_file.replace('.xml', '.jpg')
+            )
 
             if not os.path.exists(img_path):
                 skipped += 1
@@ -89,7 +105,8 @@ class DIORDataset(Dataset):
                 skipped += 1
                 continue
 
-        print(f"DIOR {self.split}: {loaded} samples loaded ({skipped} skipped)")
+        print(f"DIOR {self.split}: {loaded} samples loaded "
+              f"({skipped} skipped)")
 
     def __len__(self):
         return len(self.samples)
@@ -112,33 +129,63 @@ class DIORDataset(Dataset):
             img = transforms.Compose([
                 transforms.Resize((self.img_size, self.img_size)),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
+                )
             ])(img)
 
         return img, sample['label']
 
 
-def get_dior_loaders(root_dir, batch_size=32, img_size=64, num_workers=2):
+def get_dior_loaders(root_dir, batch_size=32,
+                     img_size=64, num_workers=2):
     transform_train = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ColorJitter(brightness=0.2, contrast=0.2),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        )
     ])
 
     transform_test = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        )
     ])
 
-    train_dataset = DIORDataset(root_dir, split='train', transform=transform_train, img_size=img_size)
-    test_dataset = DIORDataset(root_dir, split='test', transform=transform_test, img_size=img_size)
+    train_dataset = DIORDataset(
+        root_dir, split='train',
+        transform=transform_train,
+        img_size=img_size
+    )
+    test_dataset = DIORDataset(
+        root_dir, split='test',
+        transform=transform_test,
+        img_size=img_size
+    )
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=False
+    )
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=False
+    )
 
     return train_loader, test_loader
 
@@ -147,7 +194,12 @@ if __name__ == "__main__":
     print("Testing DIOR dataloader...")
     print(f"Total classes: {len(DIOR_CLASSES)}")
 
-    train_loader, test_loader = get_dior_loaders(root_dir='data/DIOR', batch_size=4, img_size=64, num_workers=0)
+    train_loader, test_loader = get_dior_loaders(
+        root_dir='data/DIOR',
+        batch_size=4,
+        img_size=64,
+        num_workers=0
+    )
 
     print(f"Train batches: {len(train_loader)}")
     print(f"Test batches: {len(test_loader)}")
