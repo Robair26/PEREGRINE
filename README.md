@@ -6,7 +6,6 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-3.12-blue)](https://mlflow.org)
 [![ONNX](https://img.shields.io/badge/ONNX-Edge_Ready-green)](https://onnx.ai)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![CI](https://github.com/Robair26/PEREGRINE/actions/workflows/ci.yml/badge.svg)](https://github.com/Robair26/PEREGRINE/actions)
 
 ---
