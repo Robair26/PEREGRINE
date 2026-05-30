@@ -212,3 +212,74 @@ async def detect_batch(files: list[UploadFile] = File(...)):
 
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=False)
+
+
+@app.get("/reports/latest")
+async def latest_report():
+    """Returns the most recent agent incident report"""
+    reports_dir = os.path.expanduser("~/PEREGRINE/reports")
+    if not os.path.exists(reports_dir):
+        return JSONResponse({"error": "No reports yet"})
+    
+    reports = sorted([
+        f for f in os.listdir(reports_dir)
+        if f.endswith('.json')
+    ])
+    
+    if not reports:
+        return JSONResponse({"error": "No reports yet"})
+    
+    with open(os.path.join(reports_dir, reports[-1])) as f:
+        import json as _json
+        return JSONResponse(_json.load(f))
+
+
+@app.get("/stats")
+async def stats():
+    """Returns live detection statistics"""
+    try:
+        import sqlite3 as _sqlite3
+        db_path = os.path.expanduser("~/PEREGRINE/drift_monitor.db")
+        if not os.path.exists(db_path):
+            return JSONResponse({"error": "No data yet"})
+        
+        conn = _sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        c.execute("SELECT COUNT(*) FROM detections")
+        total = c.fetchone()[0]
+        
+        c.execute("""
+            SELECT detected_class, COUNT(*) as cnt
+            FROM detections
+            GROUP BY detected_class
+            ORDER BY cnt DESC
+        """)
+        class_counts = {row[0]: row[1] for row in c.fetchall()}
+        
+        c.execute("""
+            SELECT AVG(confidence), AVG(entropy)
+            FROM detections
+            ORDER BY id DESC
+            LIMIT 100
+        """)
+        avg_conf, avg_entropy = c.fetchone()
+        
+        c.execute("""
+            SELECT COUNT(*) FROM drift_alerts
+            WHERE timestamp > datetime('now', '-24 hours')
+        """)
+        alerts = c.fetchone()[0]
+        
+        conn.close()
+        
+        return JSONResponse({
+            "total_detections": total,
+            "class_distribution": class_counts,
+            "avg_confidence": round(avg_conf or 0, 4),
+            "avg_entropy": round(avg_entropy or 0, 4),
+            "drift_alerts_24h": alerts,
+            "status": "ALERT" if alerts > 0 else "NOMINAL"
+        })
+    except Exception as e:
+        return JSONResponse({"error": str(e)})

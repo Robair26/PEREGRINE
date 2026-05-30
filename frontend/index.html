@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEREGRINE — Aerospace Object Detection</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;background:#111827;border:1px solid #1e2d45;border-radius:12px;margin-bottom:1.5rem}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{font-size:28px;color:#60a5fa}
+.logo-title{font-size:20px;font-weight:600;color:#f1f5f9}
+.logo-sub{font-size:12px;color:#64748b;margin-top:2px}
+.badge{font-size:11px;padding:4px 12px;border-radius:6px;background:#052e16;color:#4ade80;border:1px solid #166534;display:flex;align-items:center;gap:5px}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.stat{background:#111827;border:1px solid #1e2d45;border-radius:10px;padding:1rem 1.25rem}
+.stat-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:600;color:#f1f5f9}
+.stat-sub{font-size:11px;color:#475569;margin-top:3px}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.card{background:#111827;border:1px solid #1e2d45;border-radius:12px;padding:1.25rem 1.5rem}
+.card-title{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.upload-zone{border:2px dashed #1e3a5f;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s}
+.upload-zone:hover{border-color:#3b82f6;background:#0f1a2e}
+.upload-zone input{display:none}
+.upload-icon{font-size:32px;color:#334155;margin-bottom:0.5rem}
+.upload-text{font-size:14px;color:#94a3b8}
+.upload-sub{font-size:12px;color:#475569;margin-top:4px}
+.preview{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:none;margin-bottom:0.75rem;border:1px solid #1e2d45}
+.detect-btn{width:100%;margin-top:1rem;padding:11px;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;background:#1d4ed8;color:#fff;border:none;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.detect-btn:hover{background:#2563eb}
+.detect-btn:disabled{background:#1e2d45;color:#475569;cursor:not-allowed}
+.result-box{background:#0d1929;border:1px solid #1e3a5f;border-radius:10px;padding:1rem 1.25rem;margin-top:1rem;display:none}
+.result-detected{font-size:11px;color:#60a5fa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.result-class{font-size:26px;font-weight:700;color:#f1f5f9;text-transform:capitalize;margin-bottom:8px}
+.conf-row{display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:5px}
+.conf-bar{height:6px;background:#1e2d45;border-radius:3px;overflow:hidden;margin-bottom:14px}
+.conf-fill{height:100%;background:#3b82f6;border-radius:3px;transition:width 0.7s ease}
+.top5-item{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #1a2640;font-size:13px}
+.top5-item:last-child{border-bottom:none}
+.top5-name{color:#94a3b8;text-transform:capitalize;flex:1}
+.top5-bar{width:80px;height:4px;background:#1a2640;border-radius:2px;overflow:hidden;margin:0 10px}
+.top5-fill{height:100%;background:#1d4ed8;border-radius:2px}
+.top5-pct{color:#60a5fa;font-size:12px;min-width:38px;text-align:right}
+.severity-high{color:#f87171;background:#1a0a0a;border:1px solid #7f1d1d;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.severity-medium{color:#fbbf24;background:#1a1200;border:1px solid #78350f;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.severity-low{color:#4ade80;background:#052e16;border:1px solid #166534;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.agent-box{background:#0d1929;border:1px solid #1e3a5f;border-radius:10px;padding:1rem;margin-top:0.75rem;display:none}
+.agent-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2640;font-size:13px}
+.agent-row:last-child{border-bottom:none}
+.agent-label{color:#64748b}
+.agent-val{color:#e2e8f0;text-align:right;max-width:60%}
+.action-list{list-style:none;margin-top:8px}
+.action-list li{font-size:12px;color:#94a3b8;padding:3px 0;display:flex;gap:6px}
+.action-list li::before{content:"•";color:#334155}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.live-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.live-stat{background:#0d1929;border:1px solid #1e2d45;border-radius:8px;padding:0.75rem;text-align:center}
+.live-stat-val{font-size:20px;font-weight:600;color:#60a5fa}
+.live-stat-label{font-size:11px;color:#475569;margin-top:2px}
+.class-bar-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.class-bar-label{color:#94a3b8;width:130px;text-transform:capitalize;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.class-bar-track{flex:1;height:5px;background:#1a2640;border-radius:3px;overflow:hidden}
+.class-bar-fill{height:100%;background:#1d4ed8;border-radius:3px}
+.class-bar-count{color:#475569;min-width:24px;text-align:right}
+.report-box{background:#0d1929;border:1px solid #1e3a5f;border-radius:10px;padding:1rem}
+.report-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a2640;font-size:13px}
+.report-row:last-child{border-bottom:none}
+.report-label{color:#64748b}
+.report-val{color:#e2e8f0;text-align:right}
+.specs-list{list-style:none}
+.spec-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a2640;font-size:13px}
+.spec-item:last-child{border-bottom:none}
+.spec-label{color:#64748b}
+.spec-val{color:#e2e8f0;font-weight:500;text-align:right}
+.classes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;max-height:160px;overflow-y:auto;margin-top:0.5rem}
+.class-pill{font-size:11px;padding:4px 8px;background:#0d1929;border:1px solid #1e2d45;border-radius:5px;color:#64748b;display:flex;align-items:center;gap:4px;text-transform:capitalize}
+.loading{display:none;text-align:center;padding:1rem;font-size:13px;color:#64748b}
+.error-box{display:none;font-size:13px;color:#f87171;padding:0.75rem;background:#1a0a0a;border:1px solid #7f1d1d;border-radius:8px;margin-top:0.75rem}
+.footer{text-align:center;font-size:12px;color:#334155;padding:1rem 0}
+.footer a{color:#475569;text-decoration:none;margin:0 6px}
+.footer a:hover{color:#94a3b8}
+.nav-links{display:flex;gap:8px}
+.nav-link{font-size:12px;color:#475569;text-decoration:none;padding:5px 10px;border:1px solid #1e2d45;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:4px}
+.nav-link:hover{border-color:#334155;color:#94a3b8}
+.status-nominal{color:#4ade80}
+.status-alert{color:#f87171}
+.infer-time{font-size:11px;color:#334155;margin-top:8px;text-align:right}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.main-grid,.bottom-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <i class="ti ti-radar logo-icon" aria-hidden="true"></i>
+      <div>
+        <div class="logo-title">PEREGRINE</div>
+        <div class="logo-sub">Aerospace object detection · CapsNet · Hinton 2017 · Edge AI</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="badge"><div class="badge-dot"></div><span id="systemStatus">System operational</span></div>
+      <div class="nav-links">
+        <a href="/docs" class="nav-link"><i class="ti ti-code" aria-hidden="true"></i>API</a>
+        <a href="https://github.com/Robair26/PEREGRINE" target="_blank" class="nav-link"><i class="ti ti-brand-github" aria-hidden="true"></i>GitHub</a>
+        <a href="https://axiom.bitshadow.dev" target="_blank" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i>AXIOM</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Model accuracy</div><div class="stat-value">82.99%</div><div class="stat-sub">68,000 real aerial images</div></div>
+    <div class="stat"><div class="stat-label">Edge inference</div><div class="stat-value">2.65ms</div><div class="stat-sub">NVIDIA Jetson Orin Nano</div></div>
+    <div class="stat"><div class="stat-label">Total detections</div><div class="stat-value" id="totalDetections">—</div><div class="stat-sub">All time logged</div></div>
+    <div class="stat"><div class="stat-label">System status</div><div class="stat-value status-nominal" id="driftStatus">NOMINAL</div><div class="stat-sub" id="driftAlerts">0 drift alerts</div></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-satellite" aria-hidden="true"></i>Image detection</div>
+      <label class="upload-zone" id="uploadLabel">
+        <input type="file" id="fileInput" accept="image/*">
+        <div class="upload-icon"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div>
+        <div class="upload-text">Upload satellite or aerial image</div>
+        <div class="upload-sub">Drop any aerial image · JPEG · PNG</div>
+      </label>
+      <img id="preview" class="preview" alt="preview">
+      <div class="loading" id="loading"><i class="ti ti-loader" aria-hidden="true"></i> Analyzing with CapsNet...</div>
+      <div class="error-box" id="errorBox"></div>
+      <button class="detect-btn" id="detectBtn" disabled onclick="runDetection()">
+        <i class="ti ti-scan" aria-hidden="true"></i>Detect objects
+      </button>
+      <div class="result-box" id="resultBox">
+        <div class="result-detected">Detected object</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div class="result-class" id="resultClass">—</div>
+          <div id="severityBadge"></div>
+        </div>
+        <div class="conf-row"><span>Confidence</span><span id="confPct">—</span></div>
+        <div class="conf-bar"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+        <div style="font-size:11px;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">Top 5 detections</div>
+        <div id="top5List"></div>
+        <div class="infer-time" id="inferTime"></div>
+      </div>
+      <div class="agent-box" id="agentBox">
+        <div style="font-size:11px;color:#60a5fa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px"><i class="ti ti-robot" aria-hidden="true"></i> Agent assessment</div>
+        <div class="agent-row"><span class="agent-label">Threat class</span><span class="agent-val" id="agentThreat">—</span></div>
+        <div class="agent-row"><span class="agent-label">Requires escalation</span><span class="agent-val" id="agentEscalate">—</span></div>
+        <div class="agent-row"><span class="agent-label">Context</span><span class="agent-val" id="agentContext" style="font-size:11px">—</span></div>
+        <div style="font-size:11px;color:#475569;margin-top:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Recommended actions</div>
+        <ul class="action-list" id="actionList"></ul>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-cpu" aria-hidden="true"></i>System specifications</div>
+        <ul class="specs-list">
+          <li class="spec-item"><span class="spec-label">Architecture</span><span class="spec-val">CapsNet — Hinton 2017</span></li>
+          <li class="spec-item"><span class="spec-label">Training data</span><span class="spec-val">DIOR · 68,000 images</span></li>
+          <li class="spec-item"><span class="spec-label">Parameters</span><span class="spec-val">3,056,448</span></li>
+          <li class="spec-item"><span class="spec-label">Model size</span><span class="spec-val">12.2 MB ONNX</span></li>
+          <li class="spec-item"><span class="spec-label">Edge hardware</span><span class="spec-val">NVIDIA Jetson Orin Nano</span></li>
+          <li class="spec-item"><span class="spec-label">Training</span><span class="spec-val">Jetson GPU · 15 epochs</span></li>
+          <li class="spec-item"><span class="spec-label">Rotation invariance</span><span class="spec-val">CapsNet wins 6/6 angles</span></li>
+          <li class="spec-item"><span class="spec-label">Deployment</span><span class="spec-val">Docker · K3s · Prometheus</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list" aria-hidden="true"></i>Detectable classes</div>
+        <div class="classes-grid" id="classesList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>Live detection distribution</div>
+      <div class="live-stats-grid">
+        <div class="live-stat"><div class="live-stat-val" id="liveTotal">—</div><div class="live-stat-label">Total</div></div>
+        <div class="live-stat"><div class="live-stat-val" id="liveConf">—</div><div class="live-stat-label">Avg confidence</div></div>
+        <div class="live-stat"><div class="live-stat-val" id="liveAlerts">—</div><div class="live-stat-label">Drift alerts</div></div>
+      </div>
+      <div id="classBars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-file-report" aria-hidden="true"></i>Latest agent report</div>
+      <div class="report-box" id="latestReport"><div style="text-align:center;color:#334155;font-size:13px;padding:1rem">Loading report...</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built by Robair · M.S. Applied AI · University of San Diego ·
+    <a href="https://github.com/Robair26/PEREGRINE" target="_blank">GitHub</a> ·
+    <a href="/docs" target="_blank">API docs</a> ·
+    <a href="https://axiom.bitshadow.dev" target="_blank">AXIOM</a>
+  </div>
+</div>
+
+<script>
+const CLASSES=['airplane','airport','baseballfield','basketballcourt','bridge','chimney','dam','expressway-service-area','expressway-toll-station','golf field','groundtrackfield','harbor','overpass','ship','stadium','storagetank','tenniscourt','trainstation','vehicle','windmill'];
+const ICONS={'airplane':'ti-plane','airport':'ti-building-airport','ship':'ti-anchor','vehicle':'ti-car','bridge':'ti-road-off','harbor':'ti-anchor','stadium':'ti-stadium','dam':'ti-ripple','windmill':'ti-windmill','chimney':'ti-building-factory','trainstation':'ti-train'};
+const SEVERITY_COLORS={'HIGH':'severity-high','MEDIUM':'severity-medium','LOW':'severity-low'};
+const cl=document.getElementById('classesList');
+CLASSES.forEach(c=>{const ic=ICONS[c]||'ti-map-pin';cl.innerHTML+=`<div class="class-pill"><i class="ti ${ic}" aria-hidden="true"></i>${c}</div>`;});
+let file=null;
+document.getElementById('fileInput').addEventListener('change',function(e){
+  file=e.target.files[0];if(!file)return;
+  const prev=document.getElementById('preview');
+  prev.src=URL.createObjectURL(file);prev.style.display='block';
+  document.getElementById('detectBtn').disabled=false;
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('agentBox').style.display='none';
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('uploadLabel').style.display='none';
+});
+async function runDetection(){
+  if(!file)return;
+  const btn=document.getElementById('detectBtn');
+  const loading=document.getElementById('loading');
+  btn.disabled=true;loading.style.display='block';
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('agentBox').style.display='none';
+  document.getElementById('errorBox').style.display='none';
+  try{
+    const fd=new FormData();fd.append('file',file);
+    const res=await fetch('/detect',{method:'POST',body:fd});
+    if(!res.ok)throw new Error(`Server error ${res.status}`);
+    const data=await res.json();
+    document.getElementById('resultClass').textContent=data.detected.charAt(0).toUpperCase()+data.detected.slice(1);
+    const pct=(data.confidence*100).toFixed(1);
+    document.getElementById('confPct').textContent=pct+'%';
+    document.getElementById('confFill').style.width=pct+'%';
+    document.getElementById('inferTime').textContent=`Inference: ${data.inference_ms.toFixed(1)}ms · CapsNet · Hinton 2017`;
+    const t5=document.getElementById('top5List');t5.innerHTML='';
+    data.top5.forEach(item=>{
+      const p=(item.confidence*100).toFixed(1);
+      t5.innerHTML+=`<div class="top5-item"><span class="top5-name">${item.class}</span><div class="top5-bar"><div class="top5-fill" style="width:${p}%"></div></div><span class="top5-pct">${p}%</span></div>`;
+    });
+    document.getElementById('resultBox').style.display='block';
+    loadLatestReport();loadStats();
+  }catch(err){
+    document.getElementById('errorBox').textContent=`Detection failed: ${err.message}`;
+    document.getElementById('errorBox').style.display='block';
+  }finally{loading.style.display='none';btn.disabled=false;}
+}
+async function loadStats(){
+  try{
+    const res=await fetch('/stats');if(!res.ok)return;
+    const data=await res.json();if(data.error)return;
+    document.getElementById('totalDetections').textContent=data.total_detections.toLocaleString();
+    document.getElementById('driftStatus').textContent=data.status;
+    document.getElementById('driftStatus').className='stat-value '+(data.status==='NOMINAL'?'status-nominal':'status-alert');
+    document.getElementById('driftAlerts').textContent=`${data.drift_alerts_24h} drift alerts today`;
+    document.getElementById('liveTotal').textContent=data.total_detections.toLocaleString();
+    document.getElementById('liveConf').textContent=(data.avg_confidence*100).toFixed(1)+'%';
+    document.getElementById('liveAlerts').textContent=data.drift_alerts_24h;
+    const bars=document.getElementById('classBars');bars.innerHTML='';
+    const entries=Object.entries(data.class_distribution).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const max=entries[0]?entries[0][1]:1;
+    entries.forEach(([cls,cnt])=>{
+      const pct=Math.round((cnt/max)*100);
+      bars.innerHTML+=`<div class="class-bar-item"><span class="class-bar-label">${cls}</span><div class="class-bar-track"><div class="class-bar-fill" style="width:${pct}%"></div></div><span class="class-bar-count">${cnt}</span></div>`;
+    });
+  }catch(e){}
+}
+async function loadLatestReport(){
+  try{
+    const res=await fetch('/reports/latest');if(!res.ok)return;
+    const r=await res.json();if(r.error)return;
+    const sev=r.assessment.severity;
+    const sevClass=SEVERITY_COLORS[sev]||'severity-low';
+    document.getElementById('latestReport').innerHTML=`
+      <div class="report-row"><span class="report-label">Report ID</span><span class="report-val">${r.report_id}</span></div>
+      <div class="report-row"><span class="report-label">Image</span><span class="report-val">${r.image.path}</span></div>
+      <div class="report-row"><span class="report-label">Detection</span><span class="report-val" style="text-transform:capitalize">${r.detection.primary_class}</span></div>
+      <div class="report-row"><span class="report-label">Confidence</span><span class="report-val">${(r.detection.confidence*100).toFixed(1)}%</span></div>
+      <div class="report-row"><span class="report-label">Severity</span><span class="report-val"><span class="${sevClass}">${sev}</span></span></div>
+      <div class="report-row"><span class="report-label">Threat class</span><span class="report-val">${r.assessment.is_threat_class?'YES':'NO'}</span></div>
+      <div class="report-row"><span class="report-label">Escalate</span><span class="report-val">${r.assessment.requires_escalation?'YES — IMMEDIATE':'No'}</span></div>
+      <div class="report-row"><span class="report-label">System status</span><span class="report-val ${r.system_health.system_status==='NOMINAL'?'status-nominal':'status-alert'}">${r.system_health.system_status}</span></div>
+      <div style="margin-top:10px;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Context</div>
+      <div style="font-size:12px;color:#64748b;line-height:1.5">${r.assessment.contextual_assessment}</div>
+    `;
+    document.getElementById('agentThreat').textContent=r.assessment.is_threat_class?'YES':'NO';
+    document.getElementById('agentEscalate').textContent=r.assessment.requires_escalation?'YES — IMMEDIATE ACTION':'No';
+    document.getElementById('agentContext').textContent=r.assessment.contextual_assessment;
+    const al=document.getElementById('actionList');al.innerHTML='';
+    r.assessment.recommended_actions.forEach(a=>{al.innerHTML+=`<li>${a}</li>`;});
+    document.getElementById('agentBox').style.display='block';
+    document.getElementById('severityBadge').innerHTML=`<span class="${sevClass}">${sev}</span>`;
+  }catch(e){}
+}
+loadStats();loadLatestReport();
+setInterval(loadStats,15000);setInterval(loadLatestReport,30000);
+</script>
+</body>
+</html>
