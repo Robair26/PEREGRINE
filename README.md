@@ -6,6 +6,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-3.12-blue)](https://mlflow.org)
 [![ONNX](https://img.shields.io/badge/ONNX-Edge_Ready-green)](https://onnx.ai)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![CI](https://github.com/Robair26/PEREGRINE/actions/workflows/ci.yml/badge.svg)](https://github.com/Robair26/PEREGRINE/actions)
 
 ---
@@ -16,7 +17,7 @@ PEREGRINE is a production-grade aerospace object detection system built on Geoff
 
 PEREGRINE proves a specific and mission-critical thesis: capsule networks preserve spatial relationships that CNNs lose through max-pooling, making them superior for rotation-invariant detection in aerospace and defense imagery where objects appear at arbitrary orientations.
 
-Deployed on NVIDIA Jetson Orin Nano for edge inference, tracked with MLflow, monitored with Prometheus and Grafana, orchestrated with Kubernetes, and served via a live FastAPI inference endpoint. Built to demonstrate real-world AI research and engineering skills for roles in aerospace, defense, and edge AI.
+Deployed on NVIDIA Jetson Orin Nano for edge inference, tracked with MLflow, monitored with Prometheus and Grafana, orchestrated with Kubernetes, served via a live FastAPI inference endpoint, and featuring an autonomous investigation agent that generates structured incident reports. Built to demonstrate real-world AI research and engineering skills for roles in aerospace, defense, and edge AI.
 
 Named after the Peregrine falcon — the fastest animal alive, known for extraordinary spatial perception and precision targeting from altitude.
 
@@ -94,7 +95,10 @@ ORCHESTRATION — Kubernetes K3s
 Auto-healing · Prometheus · Grafana monitoring
 
 MLOPS — MLflow
-Experiment tracking · Model versioning · Drift detection
+Experiment tracking · Model versioning · Drift detection · KS-test statistical monitoring
+
+AGENT LAYER — Autonomous Investigation
+Threat assessment · Severity classification · Incident reports · Recommended actions
 
 CapsNet Architecture:
 Input Image (3ch, 32x32)
@@ -125,17 +129,21 @@ ONNX Edge Export — 12.2MB model exported to ONNX and running at 2.65ms on Jets
 
 MLflow Experiment Tracking — Every training run, parameter, and metric logged automatically. Full experiment history with model registry and artifact storage.
 
-Live Defense Dashboard — Production web interface at peregrine.bitshadow.dev. Upload any satellite or aerial image and see real-time detections with confidence scores and top 5 results.
+Live Defense Dashboard — Production web interface at peregrine.bitshadow.dev. Upload any satellite or aerial image and see real-time detections with confidence scores, top 5 results, agent assessment, and live detection distribution.
 
-FastAPI Inference Endpoint — Live API accepting satellite images and returning detections with confidence scores for all 20 aerospace classes.
+FastAPI Inference Endpoint — Live API accepting satellite images and returning detections with confidence scores for all 20 aerospace classes. Full OpenAPI documentation.
+
+Autonomous Investigation Agent — Detects objects, assesses threat severity (HIGH/MEDIUM/LOW), generates contextual intelligence assessments, recommends specific actions, and saves structured JSON incident reports. Every detection is logged with full audit trail.
+
+Prometheus Metrics — Real-time inference latency, detection counters by class, confidence score tracking, and request rate monitoring. All metrics exposed at /metrics endpoint.
+
+Grafana Dashboard — Live aerospace detection monitor showing total detections, inference latency gauge, confidence score, requests per minute, and detections by class bar chart. Auto-refreshes every 5 seconds.
+
+Drift Detection — Statistical monitoring using KS-test on confidence score and entropy distributions. Detects data distribution shift, class imbalance, and low confidence degradation. SQLite audit log for all drift alerts.
 
 Kubernetes Orchestration — K3s lightweight cluster with auto-healing deployments, persistent volume claims, and service mesh routing.
 
-Prometheus and Grafana Monitoring — Live inference latency, throughput, GPU utilization, and model confidence score dashboards.
-
-CI/CD Pipeline — GitHub Actions automated testing on every push. Green CI on every commit.
-
-Agentic Layer (In Progress) — Multi-agent reasoning system that autonomously investigates detected anomalies, pulls additional imagery, cross-references historical data, and generates incident reports.
+CI/CD Pipeline — GitHub Actions automated testing on every push. Green CI on every commit. Tests CapsNet, ResNet, and MNIST backward compatibility.
 
 ---
 
@@ -148,8 +156,10 @@ Agentic Layer (In Progress) — Multi-agent reasoning system that autonomously i
 | Experiment Tracking | MLflow 3.12 — full experiment registry |
 | Edge Device | NVIDIA Jetson Orin Nano — ARM aarch64 |
 | Edge Inference | ONNX Runtime — 2.65ms, 12.2MB model |
+| Monitoring | Prometheus + Grafana — live inference metrics |
+| Drift Detection | KS-test + PSI scoring + SQLite audit log |
+| Agent | Autonomous threat assessment + incident reports |
 | Orchestration | Docker + Kubernetes K3s |
-| Monitoring | Prometheus + Grafana |
 | API | FastAPI + Uvicorn |
 | CI/CD | GitHub Actions + DevSecOps |
 | Cloud | AWS S3 + DigitalOcean |
@@ -166,7 +176,9 @@ PEREGRINE/
 │   │   └── resnet_baseline.py      # ResNet benchmark baseline
 │   ├── data/
 │   │   └── dior_dataloader.py      # DIOR aerial dataset pipeline
-│   ├── api.py                      # FastAPI inference endpoint
+│   ├── api.py                      # FastAPI inference + metrics + agent endpoints
+│   ├── agent.py                    # Autonomous investigation agent
+│   ├── drift_detection.py          # KS-test drift monitoring + SQLite audit
 │   ├── train.py                    # MNIST smoke test training
 │   ├── train_jetson.py             # Full DIOR Jetson GPU training
 │   ├── benchmark.py                # CapsNet vs ResNet comparison
@@ -179,6 +191,7 @@ PEREGRINE/
 │   └── rotation_benchmark.png      # Results chart
 ├── deploy/
 │   └── prometheus.yml              # Monitoring config
+├── reports/                        # Agent incident reports (JSON)
 ├── .github/workflows/ci.yml        # GitHub Actions CI/CD
 ├── Dockerfile
 ├── docker-compose.yml
@@ -193,10 +206,12 @@ git clone https://github.com/Robair26/PEREGRINE.git
 cd PEREGRINE
 python3 -m venv peregrine-env
 source peregrine-env/bin/activate
-pip install torch torchvision mlflow scikit-learn tqdm matplotlib fastapi uvicorn python-multipart
+pip install torch torchvision mlflow scikit-learn tqdm matplotlib fastapi uvicorn python-multipart scipy prometheus-client
 python src/benchmark.py
 python src/rotation_test.py
 python src/api.py
+python src/agent.py
+python src/drift_detection.py
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 docker build -t peregrine .
 docker-compose up
@@ -218,9 +233,10 @@ kubectl apply -f deploy/kubernetes/
 - [x] Live defense dashboard — peregrine.bitshadow.dev
 - [x] Docker + Kubernetes deployment
 - [x] GitHub Actions CI/CD — green on every push
-- [ ] Prometheus and Grafana live monitoring dashboard
-- [ ] Drift detection with auto-retraining triggers
-- [ ] Agentic anomaly investigation layer
+- [x] Prometheus metrics — inference latency, detection counts, confidence
+- [x] Grafana live monitoring dashboard — auto-refresh every 5s
+- [x] Drift detection — KS-test, class imbalance, SQLite audit log
+- [x] Autonomous investigation agent — threat assessment, incident reports
 - [ ] Research paper writeup
 
 ---
