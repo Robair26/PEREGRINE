@@ -1,6 +1,6 @@
 # 🦅 PEREGRINE — Aerospace Object Detection System
 ### Edge-Deployed Capsule Network for Spatial Reasoning in Defense Imagery
-### CapsNet vs ResNet — 68,000 Real Aerial Images — NVIDIA Jetson Orin GPU
+### CapsNet vs ResNet — 68,000 Real Aerial Images — NVIDIA Jetson Orin
 
 [![Python](https://img.shields.io/badge/Python-3.10-blue)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red)](https://pytorch.org)
@@ -13,11 +13,11 @@
 
 ## 🎯 What is PEREGRINE?
 
-PEREGRINE is a production-grade aerospace object detection system built on Geoffrey Hinton's Capsule Network architecture (2017). It implements dynamic routing by agreement from scratch in PyTorch, trains on 68,000 real satellite and aerial images from the DIOR dataset, and deploys on NVIDIA Jetson Orin Nano for sub-3ms edge inference with no cloud required.
+PEREGRINE is an aerospace object detection system built on Geoffrey Hinton's Capsule Network architecture (2017). It implements dynamic routing by agreement from scratch in PyTorch, trains on 68,000 real satellite and aerial images from the DIOR dataset, and deploys on an NVIDIA Jetson Orin Nano for sub-3ms edge inference with no cloud required for inference.
 
-PEREGRINE proves a specific and mission-critical thesis: capsule networks preserve spatial relationships that CNNs lose through max-pooling, making them superior for rotation-invariant detection in aerospace and defense imagery where objects appear at arbitrary orientations.
+PEREGRINE tests a hypothesis: capsule networks preserve spatial relationships that CNNs lose through max-pooling, which may make them more robust to rotation in aerospace and defense imagery, where objects appear at arbitrary orientations.
 
-Deployed on NVIDIA Jetson Orin Nano for edge inference, tracked with MLflow, monitored with Prometheus and Grafana, orchestrated with Kubernetes, served via a live FastAPI inference endpoint, and featuring an autonomous investigation agent that generates structured incident reports. Built to demonstrate real-world AI research and engineering skills for roles in aerospace, defense, and edge AI.
+The system is deployed on an NVIDIA Jetson Orin Nano for edge inference, tracked with MLflow, monitored with Prometheus and Grafana, orchestrated with Kubernetes (K3s), and served through a live FastAPI inference endpoint. It also includes an autonomous investigation agent that generates structured incident reports.
 
 Named after the Peregrine falcon — the fastest animal alive, known for extraordinary spatial perception and precision targeting from altitude.
 
@@ -32,7 +32,7 @@ API documentation: https://peregrine.bitshadow.dev/docs
 
 ---
 
-## 📊 Full Training Results — NVIDIA Jetson Orin GPU
+## 📊 Full Training Results — NVIDIA Jetson Orin
 
 ### Overall Accuracy — 68,000 Real Aerial Images, 15 Epochs
 
@@ -41,7 +41,9 @@ API documentation: https://peregrine.bitshadow.dev/docs
 | CapsNet (PEREGRINE) | 82.99% | 3,056,448 | 2.65ms |
 | ResNet Baseline | 89.97% | 2,780,244 | — |
 
-### Rotation Invariance Benchmark — Hinton's Core Thesis
+ResNet achieves higher overall accuracy on this dataset.
+
+### Rotation Benchmark
 
 | Rotation | CapsNet | ResNet | CapsNet Advantage |
 |----------|---------|--------|-------------------|
@@ -52,7 +54,7 @@ API documentation: https://peregrine.bitshadow.dev/docs
 | 60° | 20.5% | 12.5% | +8.0% |
 | 90° | 14.5% | 10.5% | +4.0% |
 
-**CapsNet wins 6/6 rotation angles. Maximum advantage +8% at 60°.**
+CapsNet scored higher than ResNet at all 6 angles. The largest gap is +8.0 points at 60°. Results come from a single run on a small test subset, so small gaps (such as +0.5 at 15°) should not be over-interpreted. Both models lose most of their accuracy at large rotations.
 
 ![PEREGRINE Rotation Benchmark](docs/rotation_benchmark.png)
 
@@ -73,20 +75,21 @@ API documentation: https://peregrine.bitshadow.dev/docs
 
 ## 🧠 The Research Finding
 
-ResNet achieves higher overall classification accuracy on DIOR. However CapsNet demonstrates consistent superiority on rotation-invariant detection — the critical capability for real-world aerospace and defense applications where satellite imagery captures objects at arbitrary orientations, drone footage shows vehicles and aircraft banking and turning, and cluttered aerial scenes have overlapping spatially complex objects.
+ResNet achieves higher overall classification accuracy on DIOR. In the rotation tests, CapsNet lost less accuracy than ResNet under rotation: it scored higher at every angle tested, with the largest gap at 60°. The gap is not steady across angles, and both models degrade sharply at large rotations. This matters for aerospace and defense applications, where satellite imagery captures objects at arbitrary orientations, drone footage shows vehicles and aircraft banking and turning, and cluttered aerial scenes have overlapping, spatially complex objects.
 
-CapsNet's dynamic routing by agreement preserves orientation, pose, and spatial relationships between features. ResNet loses this information through max-pooling. In controlled rotation tests CapsNet outperforms ResNet at every angle tested with the advantage growing at extreme rotations — exactly what Hinton predicted in 2017.
+CapsNet's dynamic routing by agreement is designed to preserve orientation, pose, and spatial relationships between features, which CNNs can lose through max-pooling.
 
 ### Why CapsNet over Vision Transformers?
 
-ViTs achieve state-of-the-art accuracy but require massive datasets and compute. CapsNet's inductive spatial bias makes it more data-efficient and deployable on edge hardware — a 12.2MB ONNX model running at 2.65ms on Jetson Orin with no cloud dependency. For defense field operations where connectivity is limited and latency is critical, edge-deployable spatial reasoning beats cloud-dependent accuracy.
+ViTs achieve state-of-the-art accuracy but require massive datasets and compute. CapsNet's inductive spatial bias may make it more data-efficient and deployable on edge hardware — a 12.2MB ONNX model running at 2.65ms on Jetson Orin Nano with no cloud dependency for inference. For field operations where connectivity is limited and latency is critical, edge-deployable spatial reasoning is a practical advantage over cloud-dependent accuracy.
 
 ---
 
 ## 🏗️ Architecture
 
+```
 EDGE LAYER — NVIDIA Jetson Orin Nano
-ONNX Runtime · 2.65ms inference · 12.2MB model · No cloud required
+ONNX Runtime · 2.65ms inference · 12.2MB model · No cloud required for inference
 
 CLOUD LAYER — AWS + DigitalOcean
 Model registry · Retraining pipeline · S3 artifacts
@@ -99,9 +102,12 @@ Experiment tracking · Model versioning · Drift detection · KS-test statistica
 
 AGENT LAYER — Autonomous Investigation
 Threat assessment · Severity classification · Incident reports · Recommended actions
+```
 
 CapsNet Architecture:
-Input Image (3ch, 32x32)
+
+```
+Input Image (3ch, 32x32, resized from DIOR images)
     ↓
 Conv Layer (64 filters, 5x5, ReLU)
     ↓
@@ -112,38 +118,39 @@ Dynamic Routing by Agreement
 Class Capsules (16D vectors x 20 aerospace classes)
     ↓
 Vector Length to Class Probability
+```
 
 ---
 
 ## ✅ Complete Feature List
 
-CapsNet Implementation — Full Hinton 2017 dynamic routing by agreement built from scratch in PyTorch. Primary capsules, digit capsules, squash activation, and margin loss. Not a wrapper. Not a tutorial. Original implementation validated against the paper.
+**CapsNet Implementation** — Dynamic routing by agreement implemented from scratch in PyTorch following the 2017 paper: primary capsules, class capsules, squash activation, and margin loss.
 
-ResNet Baseline — Lightweight ResNet with residual blocks for direct benchmark comparison. Proves the spatial advantage of CapsNets on rotated imagery.
+**ResNet Baseline** — Lightweight ResNet with residual blocks for direct benchmark comparison on rotated imagery.
 
-Full DIOR Training — 68,000 real satellite and aerial images across 20 object classes trained on NVIDIA Jetson Orin GPU. Ships, aircraft, vehicles, airports, bridges, dams, harbors, and more.
+**Full DIOR Training** — 68,000 real satellite and aerial images across 20 object classes, trained on NVIDIA Jetson Orin. Ships, aircraft, vehicles, airports, bridges, dams, harbors, and more.
 
-Rotation Invariance Benchmark — Tests both models at 0, 15, 30, 45, 60, and 90 degree rotation. CapsNet wins all six angles with increasing advantage at extreme rotations.
+**Rotation Benchmark** — Tests both models at 0, 15, 30, 45, 60, and 90 degree rotation. CapsNet scores higher at all six angles in a single run; the gap is largest at 60°.
 
-ONNX Edge Export — 12.2MB model exported to ONNX and running at 2.65ms on Jetson Orin Nano. Sub-3ms inference with no cloud dependency.
+**ONNX Edge Export** — 12.2MB model exported to ONNX and running at 2.65ms on Jetson Orin Nano, with no cloud dependency for inference.
 
-MLflow Experiment Tracking — Every training run, parameter, and metric logged automatically. Full experiment history with model registry and artifact storage.
+**MLflow Experiment Tracking** — Every training run, parameter, and metric logged automatically, with model registry and artifact storage.
 
-Live Defense Dashboard — Production web interface at peregrine.bitshadow.dev. Upload any satellite or aerial image and see real-time detections with confidence scores, top 5 results, agent assessment, and live detection distribution.
+**Live Dashboard** — Web interface at peregrine.bitshadow.dev. Upload any satellite or aerial image and see detections with confidence scores, top 5 results, agent assessment, and live detection distribution.
 
-FastAPI Inference Endpoint — Live API accepting satellite images and returning detections with confidence scores for all 20 aerospace classes. Full OpenAPI documentation.
+**FastAPI Inference Endpoint** — Live API accepting satellite images and returning detections with confidence scores for all 20 aerospace classes. Full OpenAPI documentation.
 
-Autonomous Investigation Agent — Detects objects, assesses threat severity (HIGH/MEDIUM/LOW), generates contextual intelligence assessments, recommends specific actions, and saves structured JSON incident reports. Every detection is logged with full audit trail.
+**Autonomous Investigation Agent** — Detects objects, assesses threat severity (HIGH/MEDIUM/LOW), generates contextual assessments, recommends actions, and saves structured JSON incident reports. Every detection is logged.
 
-Prometheus Metrics — Real-time inference latency, detection counters by class, confidence score tracking, and request rate monitoring. All metrics exposed at /metrics endpoint.
+**Prometheus Metrics** — Inference latency, detection counters by class, confidence score tracking, and request rate monitoring, exposed at the /metrics endpoint.
 
-Grafana Dashboard — Live aerospace detection monitor showing total detections, inference latency gauge, confidence score, requests per minute, and detections by class bar chart. Auto-refreshes every 5 seconds.
+**Grafana Dashboard** — Live detection monitor showing total detections, inference latency gauge, confidence score, requests per minute, and detections by class. Auto-refreshes every 5 seconds.
 
-Drift Detection — Statistical monitoring using KS-test on confidence score and entropy distributions. Detects data distribution shift, class imbalance, and low confidence degradation. SQLite audit log for all drift alerts.
+**Drift Detection** — Statistical monitoring using KS-test on confidence score and entropy distributions. Detects data distribution shift, class imbalance, and low-confidence degradation. SQLite audit log for all drift alerts.
 
-Kubernetes Orchestration — K3s lightweight cluster with auto-healing deployments, persistent volume claims, and service mesh routing.
+**Kubernetes Orchestration** — K3s lightweight cluster with auto-healing deployments and persistent volume claims.
 
-CI/CD Pipeline — GitHub Actions automated testing on every push. Green CI on every commit. Tests CapsNet, ResNet, and MNIST backward compatibility.
+**CI/CD Pipeline** — GitHub Actions automated testing on every push. Tests CapsNet, ResNet, and MNIST backward compatibility.
 
 ---
 
@@ -153,15 +160,15 @@ CI/CD Pipeline — GitHub Actions automated testing on every push. Green CI on e
 |-------|-----------|
 | Model | PyTorch 2.8.0 — CapsNet + ResNet from scratch |
 | Dataset | DIOR — 68,000 aerial images, 20 object classes |
-| Experiment Tracking | MLflow 3.12 — full experiment registry |
+| Experiment Tracking | MLflow 3.12 — experiment registry |
 | Edge Device | NVIDIA Jetson Orin Nano — ARM aarch64 |
 | Edge Inference | ONNX Runtime — 2.65ms, 12.2MB model |
 | Monitoring | Prometheus + Grafana — live inference metrics |
 | Drift Detection | KS-test + PSI scoring + SQLite audit log |
-| Agent | Autonomous threat assessment + incident reports |
+| Agent | Threat assessment + incident reports |
 | Orchestration | Docker + Kubernetes K3s |
 | API | FastAPI + Uvicorn |
-| CI/CD | GitHub Actions + DevSecOps |
+| CI/CD | GitHub Actions |
 | Cloud | AWS S3 + DigitalOcean |
 | Language | Python 3.10 |
 
@@ -169,6 +176,7 @@ CI/CD Pipeline — GitHub Actions automated testing on every push. Green CI on e
 
 ## 📁 Project Structure
 
+```
 PEREGRINE/
 ├── src/
 │   ├── models/
@@ -180,28 +188,32 @@ PEREGRINE/
 │   ├── agent.py                    # Autonomous investigation agent
 │   ├── drift_detection.py          # KS-test drift monitoring + SQLite audit
 │   ├── train.py                    # MNIST smoke test training
-│   ├── train_jetson.py             # Full DIOR Jetson GPU training
+│   ├── train_jetson.py             # Full DIOR training on Jetson
 │   ├── benchmark.py                # CapsNet vs ResNet comparison
-│   ├── rotation_test.py            # Rotation invariance proof
+│   ├── rotation_test.py            # Rotation benchmark
 │   ├── visualize.py                # Benchmark visualization
 │   └── export_onnx.py              # ONNX edge export
 ├── frontend/
-│   └── index.html                  # Live defense dashboard
+│   └── index.html                  # Live dashboard
 ├── docs/
 │   └── rotation_benchmark.png      # Results chart
 ├── deploy/
 │   └── prometheus.yml              # Monitoring config
 ├── reports/                        # Agent incident reports (JSON)
-├── .github/workflows/ci.yml        # GitHub Actions CI/CD
+├── .github/workflows/ci.yml        # GitHub Actions CI
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
+```
 
 ---
 
 ## 🚀 Quickstart
 
+Download the DIOR dataset from its official release and point `src/data/dior_dataloader.py` at the data directory.
+
+```bash
 git clone https://github.com/Robair26/PEREGRINE.git
 cd PEREGRINE
 python3 -m venv peregrine-env
@@ -215,7 +227,7 @@ python src/drift_detection.py
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 docker build -t peregrine .
 docker-compose up
-kubectl apply -f deploy/kubernetes/
+```
 
 ---
 
@@ -225,18 +237,19 @@ kubectl apply -f deploy/kubernetes/
 - [x] ResNet baseline for benchmark comparison
 - [x] Training loop with margin loss
 - [x] MLflow experiment tracking and model registry
-- [x] Rotation invariance benchmark — CapsNet wins 6/6 angles
+- [x] Rotation benchmark — CapsNet scores higher at 6/6 angles (single run)
 - [x] DIOR aerial dataset — 68,000 real aerospace images
-- [x] Full GPU training on NVIDIA Jetson Orin — 15 epochs
+- [x] Full training on NVIDIA Jetson Orin — 15 epochs
 - [x] ONNX export — 12.2MB model, 2.65ms edge inference
-- [x] FastAPI inference endpoint — live aerospace detection API
-- [x] Live defense dashboard — peregrine.bitshadow.dev
+- [x] FastAPI inference endpoint
+- [x] Live dashboard — peregrine.bitshadow.dev
 - [x] Docker + Kubernetes deployment
-- [x] GitHub Actions CI/CD — green on every push
+- [x] GitHub Actions CI
 - [x] Prometheus metrics — inference latency, detection counts, confidence
 - [x] Grafana live monitoring dashboard — auto-refresh every 5s
 - [x] Drift detection — KS-test, class imbalance, SQLite audit log
 - [x] Autonomous investigation agent — threat assessment, incident reports
+- [ ] Multiple training runs with confidence intervals
 - [ ] Research paper writeup
 
 ---
@@ -253,13 +266,9 @@ kubectl apply -f deploy/kubernetes/
 
 ## 👤 Built By
 
-Robair — M.S. Applied Artificial Intelligence, University of San Diego
+Robair Farag — M.S. Applied Artificial Intelligence, University of San Diego
 
 - Live demo: https://peregrine.bitshadow.dev
 - AXIOM (edge-cloud AI system): https://axiom.bitshadow.dev
 - GitHub: https://github.com/Robair26
 - PEREGRINE: https://github.com/Robair26/PEREGRINE
-
----
-
-Built on the shoulders of giants. Dedicated to the researchers who warned us about what we were building — and kept building anyway.
