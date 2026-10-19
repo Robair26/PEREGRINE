@@ -1,0 +1,51 @@
+{
+  "config": {
+    "manifest": "dior_split_manifest_v1.json",
+    "data_root": "data/DIOR",
+    "train_per_class": 2,
+    "val_per_class": 2,
+    "epochs": 1,
+    "batch_size": 8,
+    "threads": 2,
+    "seed": 42,
+    "output_dir": "experiments/resnet_v2_cpu_pilot",
+    "smoke": true
+  },
+  "manifest": "dior_split_manifest_v1.json",
+  "seed": 42,
+  "source_image_overlap": 0,
+  "train_objects": 40,
+  "validation_objects": 40,
+  "duration_seconds": 4.8,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 3.550035810470581,
+      "accuracy": 0.1,
+      "macro_f1": 0.05952380952380952,
+      "class_support": {
+        "airplane": 2,
+        "airport": 2,
+        "baseballfield": 2,
+        "basketballcourt": 2,
+        "bridge": 2,
+        "chimney": 2,
+        "dam": 2,
+        "Expressway-Service-area": 2,
+        "Expressway-toll-station": 2,
+        "golffield": 2,
+        "groundtrackfield": 2,
+        "harbor": 2,
+        "overpass": 2,
+        "ship": 2,
+        "stadium": 2,
+        "storagetank": 2,
+        "tenniscourt": 2,
+        "trainstation": 2,
+        "vehicle": 2,
+        "windmill": 2
+      }
+    }
+  ],
+  "experimental_warning": "CPU pilot; NOT independent test accuracy. Do not compare directly with historical reported test scores."
+}
